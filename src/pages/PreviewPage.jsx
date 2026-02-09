@@ -1,18 +1,17 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-// Import Assets (รูปเดิมที่ใช้)
+// Import Assets
 import MaterialGirlImg from '../assets/MaterialGirl.png';
 import EndlessLoveImg from '../assets/EndlessLove.png';
 import buttonBgImage from '../assets/button2.svg'; 
 import bgPage from '../assets/frameSelectionPage.svg'; 
 
-// --- CONFIG (ก๊อปปี้มาจากหน้า Capture เพื่อให้ตำแหน่งตรงกันเป๊ะ) ---
-// *อนาคตถ้าโปรเจคใหญ่ขึ้น ควรแยกไฟล์นี้ไปไว้ที่ src/config.js ครับ
+// --- CONFIG ---
 const FRAME_CONFIGS = {
   red: {
     bgImage: MaterialGirlImg,
-    width: 667, // ขนาดเฟรมจริง
+    width: 667, 
     height: 1000,
     getPosition: (i) => {
       const startX = 86;
@@ -28,17 +27,15 @@ const FRAME_CONFIGS = {
     width: 667,
     height: 1000,
     getPosition: (i) => {
-      const startX = 451; // เช็คค่านี้กับหน้า Capture ให้ตรงกันนะครับ
-      const startY = 240;
-      const gap = 10;
-      // 🟢 ใส่ค่าองศาที่จูนไว้จากหน้า Capture มาใส่ตรงนี้ด้วย
-      const rotates = [1, -2, 0, 3]; 
+      const startX = 446; 
+      const startY = 240; 
+      const gap = 12;      
       return { 
         x: startX, 
         y: startY + i * (160 + gap), 
         w: 128, 
         h: 160, 
-        deg: rotates[i] || 0 
+        deg: 1.2 
       };
     },
   },
@@ -49,130 +46,125 @@ const PreviewPage = () => {
   const navigate = useNavigate();
   const canvasRef = useRef(null);
   
-  // รับข้อมูลรูปถ่ายมาจากหน้า Capture
   const { photos, selectedFrame } = state || { photos: [], selectedFrame: 'red' };
-  const currentConfig = FRAME_CONFIGS[selectedFrame];
+  const currentConfig = FRAME_CONFIGS[selectedFrame] || FRAME_CONFIGS['red']; // กัน Error
 
-  const [finalImage, setFinalImage] = useState(null); // รูปผลลัพธ์ที่จะโชว์
+  const [finalImage, setFinalImage] = useState(null); 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!photos || photos.length === 0) {
-      navigate('/'); // ถ้าไม่มีรูป เด้งกลับหน้าแรก
+      navigate('/'); 
       return;
     }
     generateImage();
   }, [photos]);
 
-  // ฟังก์ชันวาดรูปรวมร่าง (Merge)
   const generateImage = async () => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
 
-    // 1. ตั้งขนาด Canvas เท่ากับขนาดจริงของเฟรม
-    canvas.width = currentConfig.width;
-    canvas.height = currentConfig.height;
+    // 1. ตั้งขนาด Canvas + ความชัดระดับ HD (x4)
+    const SCALE = 4;
+    canvas.width = currentConfig.width * SCALE;
+    canvas.height = currentConfig.height * SCALE;
+    ctx.scale(SCALE, SCALE);
 
-    // Helper: โหลดรูปให้เสร็จก่อนวาด
+    // ✨✨ เทสีขาวทั้งแผ่นก่อนเลย (แก้ปัญหาขอบดำ/เล็งไม่ตรง) ✨✨
+    // เหมือนเราเตรียมกระดาษขาวไว้ก่อนวาดรูปครับ
+    ctx.fillStyle = '#FFFFFF'; 
+    ctx.fillRect(0, 0, currentConfig.width, currentConfig.height);
+
+    // Helper: โหลดรูป
     const loadImage = (src) => new Promise((resolve) => {
       const img = new Image();
+      img.crossOrigin = "anonymous";
       img.src = src;
       img.onload = () => resolve(img);
     });
 
-    // 2. โหลดรูปถ่ายทั้งหมด
-    const loadedPhotos = await Promise.all(photos.map(src => loadImage(src)));
-    
-    // 3. วาดรูปถ่ายลงไปก่อน (Layer ล่าง)
-    loadedPhotos.forEach((img, i) => {
-      const { x, y, w, h, deg } = currentConfig.getPosition(i);
-      
-      ctx.save();
-      // ย้ายจุดหมุนไปตรงกลางรูป
-      ctx.translate(x + w / 2, y + h / 2); 
-      // หมุนภาพ (แปลง องศา เป็น radian)
-      ctx.rotate((deg * Math.PI) / 180);
-      // วาดรูป (ขยับจุดวาดกลับไปที่มุมซ้ายบนของตัวเอง)
-      ctx.drawImage(img, -w / 2, -h / 2, w, h);
-      ctx.restore();
-    });
+    try {
+        const loadedPhotos = await Promise.all(photos.map(src => loadImage(src)));
+        
+        // 2. วาดรูปถ่ายทีละรูป
+        loadedPhotos.forEach((img, i) => {
+          const { x, y, w, h, deg } = currentConfig.getPosition(i);
+          
+          ctx.save();
+          // ย้ายจุดหมุนไปตรงกลางรูป
+          ctx.translate(x + w / 2, y + h / 2); 
+          ctx.rotate((deg * Math.PI) / 180);
 
-    // 4. วาดกรอบเฟรมทับ (Layer บน)
-    const frameImg = await loadImage(currentConfig.bgImage);
-    ctx.drawImage(frameImg, 0, 0, currentConfig.width, currentConfig.height);
+          // วาดรูปถ่ายทับลงไป
+          ctx.drawImage(img, -w / 2, -h / 2, w, h);
+          ctx.restore();
+        });
 
-    // 5. แปลง Canvas เป็นรูปภาพ (Base64)
-    setFinalImage(canvas.toDataURL('image/png'));
-    setLoading(false);
+        // 3. วาดกรอบเฟรมทับ (Layer บนสุด)
+        const frameImg = await loadImage(currentConfig.bgImage);
+        ctx.drawImage(frameImg, 0, 0, currentConfig.width, currentConfig.height);
+
+        // 4. Save เป็น JPG 
+        setFinalImage(canvas.toDataURL('image/jpeg', 0.95));
+        setLoading(false);
+
+    } catch (error) {
+        console.error("Error generating image:", error);
+        setLoading(false);
+    }
   };
 
   const handleDownload = () => {
     if (!finalImage) return;
     const link = document.createElement('a');
     link.href = finalImage;
-    link.download = `photobooth-${Date.now()}.png`;
+    link.download = `photobooth-${Date.now()}.jpg`;
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
   };
 
   return (
     <div className="relative w-screen h-screen overflow-hidden flex items-center justify-center bg-[#2d3436]">
-      
-      {/* Background Page */}
       <img src={bgPage} alt="Background" className="absolute inset-0 w-full h-full object-cover z-0" />
-
-      {/* Canvas ที่เราใช้วาด (ซ่อนไว้ ไม่ให้ user เห็น) */}
       <canvas ref={canvasRef} className="hidden" />
 
-      <div className="z-10 flex flex-col items-center">
-        
-        {/* รูปผลลัพธ์ (แสดงตรงกลาง) */}
+      <div className="z-10 flex flex-col items-center gap-4 relative w-full h-full justify-center">
         {loading ? (
-           <div className="text-white text-2xl font-bold animate-pulse">Generatng your photo...</div>
+           <div className="text-white text-2xl font-bold animate-pulse">Creating High-Res Photo... 📸</div>
         ) : (
           <div 
-            className="bg-white shadow-2xl p-2 rotate-1" // ใส่กรอบขาว + เอียงนิดๆ ให้ดูเก๋
-            style={{ transform: 'scale(0.55)' }} // ย่อลงมาหน่อยจะได้ไม่เต็มจอเกินไป
+            className="bg-white shadow-2xl p-1 md:p-2 rotate-1 transition-transform hover:scale-105 duration-300"
+            style={{ maxHeight: '70vh' }}
           >
-            <img src={finalImage} alt="Final Result" className="block" />
+            <img 
+                src={finalImage} 
+                alt="Final Result" 
+                className="block h-full w-auto object-contain max-h-[65vh]" 
+            />
           </div>
         )}
+
+        {!loading && (
+            <div className="flex gap-4 mt-4">
+                <button 
+                onClick={() => navigate('/')} 
+                className="font-dancing font-bold text-xl md:text-2xl text-vintage-red w-[160px] h-[50px] md:w-[200px] md:h-[64px] bg-transparent border-none outline-none bg-no-repeat bg-center bg-[length:100%_100%] hover:scale-105 active:scale-95 transition-transform cursor-pointer"
+                style={{ backgroundImage: `url(${buttonBgImage})` }}
+                >
+                New Game
+                </button>
+
+                <button 
+                onClick={handleDownload} 
+                className="font-dancing font-bold text-xl md:text-2xl text-vintage-red w-[160px] h-[50px] md:w-[200px] md:h-[64px] bg-transparent border-none outline-none bg-no-repeat bg-center bg-[length:100%_100%] hover:scale-105 active:scale-95 transition-transform cursor-pointer"
+                style={{ backgroundImage: `url(${buttonBgImage})` }}
+                >
+                Save Photo 📥
+                </button>
+            </div>
+        )}
       </div>
-
-      {/* ปุ่มกด (Controls) */}
-      <div className="absolute bottom-10 left-0 w-full flex justify-center items-center gap-6 z-50">
-        
-        {/* ปุ่ม Home / Start Over */}
-        <button 
-          onClick={() => navigate('/')} 
-          className="
-            font-dancing font-bold text-2xl text-vintage-red
-            min-w-[200px] h-[64px]
-            bg-transparent border-none outline-none
-            bg-no-repeat bg-center bg-[length:100%_100%]
-            hover:scale-105 active:scale-95 transition-transform
-          "
-          style={{ backgroundImage: `url(${buttonBgImage})` }}
-        >
-          New Game
-        </button>
-
-        {/* ปุ่ม Download */}
-        <button 
-          onClick={handleDownload} 
-          className="
-            font-dancing font-bold text-2xl text-vintage-red
-            min-w-[200px] h-[64px]
-            bg-transparent border-none outline-none
-            bg-no-repeat bg-center bg-[length:100%_100%]
-            hover:scale-105 active:scale-95 transition-transform
-          "
-          style={{ backgroundImage: `url(${buttonBgImage})` }}
-        >
-          Save Photo 📥
-        </button>
-
-      </div>
-
     </div>
   );
 };

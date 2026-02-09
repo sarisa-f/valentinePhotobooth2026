@@ -4,8 +4,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 // Import Assets
 import MaterialGirlImg from '../assets/MaterialGirl.png';
 import EndlessLoveImg from '../assets/EndlessLove.png';
-import buttonBgImage from '../assets/button2.svg'; // รูปปุ่ม
-import bgPage from '../assets/frameSelectionPage.svg'; // พื้นหลัง
+import buttonBgImage from '../assets/button.svg'; 
+import button2BgImage from '../assets/button2.svg'; 
+import bgPage from '../assets/frameSelectionPage.svg';
 
 // --- CONFIG ---
 const FRAME_CONFIGS = {
@@ -35,15 +36,16 @@ const FRAME_CONFIGS = {
     slotWidth: 128,
     slotHeight: 160,
     getPosition: (i) => {
-      const startX = 446;
+      // ค่าตำแหน่งต้องตรงกับหน้า PreviewPage.jsx
+      const startX = 446; 
       const startY = 240;
       const gap = 12;
       return {
-        top: startY + i * (160 + gap),
-        left: startX,
+        top: startY + i * (160 + gap), // เรียงลงมาตรงๆ
+        left: startX,                  // ซ้ายเท่าเดิมตลอด
         width: 128,
         height: 160,
-        transform: 'rotate(1.4deg)',
+        transform: 'rotate(1deg)',     // เอียง 1 องศา
       };
     },
   },
@@ -63,9 +65,17 @@ function PhotoCapturePage() {
   const currentSlotIndex = photos.length;
   const isFinished = currentSlotIndex >= currentConfig.totalSlots;
 
-  // 1. เปิดกล้อง
+  // 1. เปิดกล้อง (แก้ไข: บังคับความชัด HD)
   useEffect(() => {
-    navigator.mediaDevices.getUserMedia({ video: true })
+    const constraints = {
+      video: {
+        width: { ideal: 1920 }, // ขอความกว้างสูงสุด
+        height: { ideal: 1080 }, // ขอความสูงสูงสุด
+        facingMode: "user"
+      }
+    };
+
+    navigator.mediaDevices.getUserMedia(constraints)
       .then(stream => {
         if (videoRef.current) videoRef.current.srcObject = stream;
       })
@@ -103,17 +113,25 @@ function PhotoCapturePage() {
     }, 1000);
   };
 
-  // 4. Capture Logic
+  // 4. Capture Logic (แก้ไข: เพิ่มความชัด 3 เท่า)
   const capture = () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
 
     const ctx = canvas.getContext('2d');
+    
+    // ดึงขนาดช่องที่จะใส่รูป
     const { width, height } = currentConfig.getPosition(currentSlotIndex);
-    canvas.width = width;
-    canvas.height = height;
+    
+    // 🔥 [แก้ไขจุดสำคัญ] เพิ่มตัวคูณความชัด (Scale Factor)
+    const SCALE = 3; // คูณ 3 เท่า (ยิ่งเยอะยิ่งชัด)
 
+    // ตั้งค่า Canvas ให้ใหญ่กว่าปกติ 3 เท่า
+    canvas.width = width * SCALE;
+    canvas.height = height * SCALE;
+
+    // คำนวณสัดส่วนการ Crop (Crop Center)
     const videoRatio = video.videoWidth / video.videoHeight;
     const slotRatio = width / height;
     
@@ -130,11 +148,18 @@ function PhotoCapturePage() {
       sy = 0;
     }
 
+    // 🔥 [แก้ไขจุดสำคัญ] สั่งขยาย Context และวาด
+    ctx.scale(SCALE, SCALE); // สั่งขยายทุกอย่าง 3 เท่า
+    
+    // กลับด้านรูป (Mirror Effect)
     ctx.translate(width, 0);
     ctx.scale(-1, 1);
+
+    // วาดรูป (ใช้ width, height เดิมได้เลย เพราะ ctx.scale จัดการให้แล้ว)
     ctx.drawImage(video, sx, sy, sWidth, sHeight, 0, 0, width, height);
     
-    const imageSrc = canvas.toDataURL('image/png');
+    // Export เป็น JPEG คุณภาพสูง (0.95 = 95%)
+    const imageSrc = canvas.toDataURL('image/jpeg', 0.95);
     setPhotos([...photos, imageSrc]);
   };
 
@@ -142,14 +167,14 @@ function PhotoCapturePage() {
     // Wrapper หลัก
     <div className="relative w-screen h-screen overflow-hidden flex items-center justify-center bg-[#2d3436]">
       
-      {/* 🟢 Layer 0: Background Image (ใช้ img tag แทน css background ชัวร์กว่า) */}
+      {/* 🟢 Layer 0: Background Image */}
       <img 
         src={bgPage} 
         alt="Background" 
         className="absolute inset-0 w-full h-full object-cover z-0" 
       />
 
-      {/* 🟢 Layer 1: Container รูปถ่าย (z-index 10) */}
+      {/* 🟢 Layer 1: Container แสดงผล (User เห็นอันนี้) */}
       <div 
         className="relative shadow-2xl overflow-hidden bg-white"
         style={{ 
@@ -160,7 +185,7 @@ function PhotoCapturePage() {
           zIndex: 10 
         }}
       >
-        {/* Photos */}
+        {/* Photos ที่ถ่ายเสร็จแล้ว */}
         {photos.map((imgSrc, index) => (
           <img 
             key={index}
@@ -171,14 +196,14 @@ function PhotoCapturePage() {
           />
         ))}
 
-        {/* Live Camera */}
+        {/* Live Camera (ช่องที่กำลังจะถ่าย) */}
         {!isFinished && (
           <div 
             className="absolute overflow-hidden bg-black"
             style={{ 
               ...currentConfig.getPosition(currentSlotIndex),
               zIndex: 20, 
-              boxShadow: '0 0 0 2px #d63031'
+              boxShadow: '0 0 0 2px #FFFFFF' // กรอบสีFFFFFFบอกตำแหน่ง
             }}
           >
             <video
@@ -188,9 +213,10 @@ function PhotoCapturePage() {
               muted
               className="w-full h-full object-cover transform scale-x-[-1]"
             />
+            {/* ตัวนับถอยหลัง */}
             {countdown !== null && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/20 z-30">
-                <span className="font-kapakana text-white text-6xl drop-shadow-md animate-ping">
+                <span className="font-dancing text-white text-6xl drop-shadow-md animate-ping">
                   {countdown}
                 </span>
               </div>
@@ -198,7 +224,7 @@ function PhotoCapturePage() {
           </div>
         )}
 
-        {/* Frame Overlay */}
+        {/* Frame Overlay (กรอบบังหน้า) */}
         <img 
           src={currentConfig.bgImage} 
           alt="Frame Overlay" 
@@ -206,36 +232,42 @@ function PhotoCapturePage() {
         />
       </div>
 
-      {/* 🟢 Layer 2: Controls (z-index 50) */}
+      {/* 🟢 Layer 2: Controls ปุ่มกด */}
       {!isFinished && (
         <>
-            {/* ปุ่ม Back (ซ้ายล่าง) */}
+            {/* ปุ่ม Back */}
             <button 
-                onClick={() => navigate('/')} 
+                onClick={() => navigate('/frame-selection')} 
                 className="
-                  absolute bottom-24 left-16
+                  absolute bottom-8 left-8
+                  md:bottom-24 md:left-16
                   z-50 
                   font-dancing font-bold text-2xl text-vintage-red
-                  min-w-[240px] h-[64px] px-6
+                  min-w-[150px] h-[50px]
+                  md:min-w-[240px] md:h-[64px] 
+                  px-6
                   bg-transparent border-none outline-none
                   bg-no-repeat bg-center bg-[length:100%_100%]
                   transition-transform duration-200 hover:scale-105 active:scale-95
                   cursor-pointer
                 "
-                style={{ backgroundImage: `url(${buttonBgImage})` }}
+                style={{ backgroundImage: `url(${button2BgImage})` }}
             >
                 Back
             </button>
 
-            {/* ปุ่ม Shutter (ขวากลาง) */}
+            {/* ปุ่ม SNAP! */}
             <button 
                 onClick={startCountdown}
                 disabled={countdown !== null}
                 className="
-                    absolute right-16 top-1/2 transform -translate-y-1/2
+                    absolute bottom-8 right-8
+                    md:right-16 md:top-1/2 md:transform md:-translate-y-1/2
                     z-50
                     font-dancing font-bold text-2xl text-vintage-red
-                    min-w-[240px] h-[64px] px-6
+                    min-w-[150px] h-[50px]
+                    md:min-w-[240px] md:h-[64px] 
+                    px-6
                     bg-transparent border-none outline-none
                     bg-no-repeat bg-center bg-[length:100%_100%]
                     transition-transform duration-200 hover:scale-105 active:scale-95
@@ -249,6 +281,7 @@ function PhotoCapturePage() {
         </>
       )}
 
+      {/* Canvas ลับ (เอาไว้ประมวลผลรูป ไม่แสดงบนจอ) */}
       <canvas ref={canvasRef} className="hidden" />
     </div>
   );
