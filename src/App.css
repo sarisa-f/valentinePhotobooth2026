@@ -1,0 +1,72 @@
+/* --- การตั้งค่าฟอนต์ --- */
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Kapakana&display=swap');
+
+/* หัวข้อใหญ่ (Vintage Title) -> ใช้ Kapakana */
+.vintage-title, h1 {
+  font-family: 'Kapakana', serif;
+  font-weight: 400;
+  letter-spacing: 2px;
+  color: #98050D;
+}
+/* หัวข้อรอง และ ปุ่มกด -> ใช้ Dancing Script */
+.vintage-subtitle, h2, .btn, p {
+  font-family: 'Dancing Script', cursive;
+}
+/* --- ปรับแต่งสไตล์ให้เข้ากับฟอนต์ (80s Vibe) --- */
+.vintage-title {
+  font-size: 4rem; /* ใหญ่สะใจ */
+  text-shadow: 3px 3px 0px rgba(255, 107, 107, 0.4); /* เงาฟุ้งๆ สีพีช */
+  margin-bottom: 0;
+  color: #98050D;
+}
+.vintage-subtitle {
+  font-size: 2rem;
+  color: #d35400;
+  margin-top: -10px; /* ขยับขึ้นไปชิดหัวข้อใหญ่หน่อย */
+}
+.btn {
+  /* --- 1. ส่วนสำคัญ: ล้างค่าเดิมของปุ่มทิ้ง --- */
+  background-color: transparent; /* ทำให้สีพื้นหลังใส (มองทะลุเห็นรูปเรา) */
+  border: none;        /* เอาเส้นขอบเดิมออก */
+  outline: none;       /* เอาเส้นโฟกัสเวลาคลิกออก */
+  box-shadow: none;    /* เอาเงาเดิมออก (ถ้ามี) */
+  /* --- 2. ส่วนของรูปภาพ --- */
+  background-image: url('./assets/button.svg'); 
+  background-size: 100% 100%; 
+  background-repeat: no-repeat;
+  background-position: center;
+  /* --- 3. จัดระเบียบตัวหนังสือ --- */
+  font-size: 1.5rem; 
+  font-weight: 700;  
+  color: #98050D;
+  cursor: pointer;   /* เมาส์เป็นรูปมือ */
+  /* --- 4. การจัดวาง (สำคัญ) --- */
+  /* กำหนดความกว้าง/สูง หรือ Padding เพื่อให้ปุ่มมีขนาดพอดีกับรูป */
+  min-width: 200px;  /* (ตัวอย่าง) กำหนดความกว้างขั้นต่ำ */
+  height: 80px;      /* (ตัวอย่าง) กำหนดความสูงให้พอดีกับรูป */
+  /* จัดตัวหนังสือให้อยู่ตรงกลางเป๊ะๆ */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 20px;   /* เผื่อที่ซ้ายขวาไม่ให้ตัวหนังสือชิดขอบรูปเกินไป */
+}
+/* เอฟเฟกต์เวลากดปุ่ม */
+.btn:hover {
+  transform: scale(1.05); /* ย่อลงนิดนึงเวลากด จะได้ดูสมจริง */
+}
+
+.welcome-bg {
+  position: fixed; /* ตรึงให้เต็มจอ */
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  
+  /* ย้ายรูปมาใส่ตรงนี้แทน */
+  background-image: url('./assets/welcomePage.svg'); 
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  
+  z-index: -1; /* สั่งให้อยู่ข้างหลังสุด */
+}

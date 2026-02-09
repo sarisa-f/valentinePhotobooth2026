@@ -1,0 +1,37 @@
+/* 1. นำเข้า Tailwind v4 ด้วยบรรทัดนี้บรรทัดเดียว */
+@import "tailwindcss";
+
+/* 2. นำเข้าฟอนต์จาก Google */
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Kapakana&display=swap');
+
+/* 3. ตั้งค่า Theme (ฟอนต์/สี) ตรงนี้เลย (ไม่ต้องใช้ tailwind.config.js) */
+@theme {
+  /* กำหนดฟอนต์ */
+  --font-kapakana: 'Kapakana', serif;
+  --font-dancing: 'Dancing Script', cursive;
+
+  /* กำหนดสี */
+  --color-vintage-red: #98050D;
+}
+
+/* 4. Global Styles */
+body {
+  /* เรียกใช้ตัวแปร Theme ที่เราตั้งไว้ข้างบน */
+  font-family: var(--font-kapakana); 
+  color: var(--color-vintage-red);
+  
+  /* ใส่พื้นหลังที่นี่ */
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f8f1f1;
+}
+
+/* --- Class พิเศษ (ถ้ายังอยากใช้) --- */
+.vintage-title {
+  @apply font-kapakana text-vintage-red;
+  /* ถ้าใช้ @apply แล้ว Error ให้ใช้ CSS ธรรมดาแทนได้เลย: */
+  /* font-family: 'Kapakana', serif; */
+}
