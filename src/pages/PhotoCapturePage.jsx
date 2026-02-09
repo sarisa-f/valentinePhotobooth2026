@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { uploadPhoto } from '../utils/uploadPhoto';
 
 // Import Assets
 import MaterialGirlImg from '../assets/MaterialGirl.png';
@@ -56,6 +57,7 @@ function PhotoCapturePage() {
   const { frameId } = useParams();
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  const fileInputRef = useRef(null);
   
   const [photos, setPhotos] = useState([]);
   const [countdown, setCountdown] = useState(null);
@@ -64,6 +66,26 @@ function PhotoCapturePage() {
   const currentConfig = FRAME_CONFIGS[selectedFrame];
   const currentSlotIndex = photos.length;
   const isFinished = currentSlotIndex >= currentConfig.totalSlots;
+
+  // Upload Photo
+  const handleUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file || isFinished) return;
+
+    const { width, height } =
+      currentConfig.getPosition(currentSlotIndex);
+
+    const imageSrc = await uploadPhoto({
+      file,
+      slotWidth: width,
+      slotHeight: height,
+    });
+
+    setPhotos([...photos, imageSrc]);
+
+    // Reset Photo
+    e.target.value = '';
+  };
 
   // 1. เปิดกล้อง (แก้ไข: บังคับความชัด HD)
   useEffect(() => {
@@ -163,6 +185,20 @@ function PhotoCapturePage() {
     setPhotos([...photos, imageSrc]);
   };
 
+  // ---------- Shared Button Style ----------
+  const actionButtonClass = `
+    font-dancing font-bold text-2xl text-vintage-red
+    min-w-[150px] h-[50px]
+    md:min-w-[240px] md:h-[64px]
+    px-6
+    bg-transparent border-none outline-none
+    bg-no-repeat bg-center bg-[length:100%_100%]
+    transition-transform duration-200
+    hover:scale-105 active:scale-95
+    cursor-pointer
+    disabled:opacity-50
+  `;
+
   return (
     // Wrapper หลัก
     <div className="relative w-screen h-screen overflow-hidden flex items-center justify-center bg-[#2d3436]">
@@ -256,28 +292,34 @@ function PhotoCapturePage() {
                 Back
             </button>
 
-            {/* ปุ่ม SNAP! */}
-            <button 
-                onClick={startCountdown}
-                disabled={countdown !== null}
-                className="
-                    absolute bottom-8 right-8
-                    md:right-16 md:top-1/2 md:transform md:-translate-y-1/2
-                    z-50
-                    font-dancing font-bold text-2xl text-vintage-red
-                    min-w-[150px] h-[50px]
-                    md:min-w-[240px] md:h-[64px] 
-                    px-6
-                    bg-transparent border-none outline-none
-                    bg-no-repeat bg-center bg-[length:100%_100%]
-                    transition-transform duration-200 hover:scale-105 active:scale-95
-                    cursor-pointer
-                    flex items-center justify-center gap-2
-                "
-                style={{ backgroundImage: `url(${buttonBgImage})` }}
+            {/* SNAP */}
+            <div className="absolute bottom-8 right-8 md:right-16 md:top-1/2 md:-translate-y-1/2 z-50 flex flex-col gap-10">
+            <button
+              onClick={startCountdown}
+              disabled={countdown !== null}
+              className={actionButtonClass}
+              style={{ backgroundImage: `url(${buttonBgImage})` }}
             >
-                SNAP! 📸
+              SNAP! 📸
             </button>
+
+            {/* Upload Photo */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className={actionButtonClass}
+              style={{ backgroundImage: `url(${buttonBgImage})` }}
+            >
+              Upload Photo
+            </button>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={handleUpload}
+            />
+          </div>
         </>
       )}
 
