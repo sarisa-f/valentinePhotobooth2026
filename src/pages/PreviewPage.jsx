@@ -152,7 +152,7 @@ const PreviewPage = () => {
                 className="font-dancing font-bold text-xl md:text-2xl text-vintage-red w-[160px] h-[50px] md:w-[200px] md:h-[64px] bg-transparent border-none outline-none bg-no-repeat bg-center bg-[length:100%_100%] hover:scale-105 active:scale-95 transition-transform cursor-pointer"
                 style={{ backgroundImage: `url(${buttonBgImage})` }}
                 >
-                New Game
+                Try again
                 </button>
 
                 <button 
@@ -164,6 +164,22 @@ const PreviewPage = () => {
                 </button>
             </div>
         )}
+      </div>
+
+      {/* Credits */}
+      <div
+        target="_blank"
+        rel="noopener noreferrer"
+        className="
+          absolute bottom-10 
+          right-[52px] text-right
+          z-20
+          font-dancing text-vintage-red
+          text-lg md:text-l
+          transition-colors duration-300
+        "
+      >
+        Developed with by @sarisa-f, @isandwish
       </div>
     </div>
   );

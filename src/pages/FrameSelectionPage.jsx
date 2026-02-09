@@ -24,12 +24,12 @@ function FrameSelectionPage({ onFrameSelect }) {
       <div className="z-10 flex flex-col items-center w-full max-w-6xl px-4">
 
         {/* --- หัวข้อ --- */}
-        <h2 className="font-kapakana text-5xl sm:text-7xl text-vintage-red mb-12 drop-shadow-md tracking-wider">
+        <h2 className="font-kapakana text-5xl sm:text-7xl text-vintage-red mb-2 drop-shadow-md tracking-wider">
           Pick a Frame
         </h2>
 
         {/* --- Grid เลือกกรอบ --- */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-24 mb-2">
           
           {/* 1. Solo (Material Girl) */}
           <div 
@@ -38,7 +38,7 @@ function FrameSelectionPage({ onFrameSelect }) {
           >
              {/* ตัวกรอบ */}
              {/* เพิ่ม overflow-hidden เพื่อไม่ให้รูปมันล้นกรอบออกมา */}
-             <div className="w-48 h-72 bg-white shadow-2xl flex flex-col items-center justify-center gap-2 group-hover:shadow-[0_0_20px_#685143] overflow-hidden">
+             <div className="w-72 h-108 bg-white shadow-2xl flex flex-col items-center justify-center gap-2 group-hover:shadow-[0_0_20px_#685143] overflow-hidden">
                 
                 {/* 👇 ใส่รูปตรงนี้ครับ */}
                 <img 
@@ -62,7 +62,7 @@ function FrameSelectionPage({ onFrameSelect }) {
           >
              {/* ตัวกรอบ */}
              {/* เพิ่ม overflow-hidden เพื่อไม่ให้รูปมันล้นกรอบออกมา */}
-             <div className="w-48 h-72 bg-white shadow-2xl flex flex-col items-center justify-center gap-2 group-hover:shadow-[0_0_20px_#685143] overflow-hidden">
+             <div className="w-72 h-108 bg-white shadow-2xl flex flex-col items-center justify-center gap-2 group-hover:shadow-[0_0_20px_#685143] overflow-hidden">
                 
                 {/* 👇 ใส่รูปตรงนี้ครับ */}
                 <img 
@@ -97,7 +97,7 @@ function FrameSelectionPage({ onFrameSelect }) {
       <button 
           onClick={() => navigate('/')} 
           className="
-            absolute bottom-24 left-16  /* 👈 สั่งให้ชิดมุมซ้ายล่าง */
+            absolute bottom-24 left-16 
             
             z-20 /* กันเหนียวไว้ เผื่อมีอะไรบัง */
             font-dancing font-bold text-2xl text-vintage-red
@@ -111,6 +111,22 @@ function FrameSelectionPage({ onFrameSelect }) {
         >
           Back
       </button>
+
+      {/* Credits */}
+      <div
+        target="_blank"
+        rel="noopener noreferrer"
+        className="
+          absolute bottom-10 
+          right-[52px] text-right
+          z-20
+          font-dancing text-vintage-red
+          text-lg md:text-l
+          transition-colors duration-300
+        "
+      >
+        Developed with by @sarisa-f, @isandwish
+      </div>
 
     </div>
   );

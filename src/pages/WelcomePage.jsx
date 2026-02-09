@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom'; // 👈 เรียกใช้ Hook สำหรับเปลี่ยนหน้า
+import { useNavigate } from 'react-router-dom';
 
 // Import Assets
 import welcomeBgImage from '../assets/welcomePage.svg';
@@ -9,14 +9,15 @@ function WelcomePage() {
   const navigate = useNavigate();
 
   const handleStart = () => {
-    // กดแล้วไปหน้าเลือกกรอบรูป
     navigate('/frame-selection'); 
   };
+
+  //const DEVELOPER_NAME = "@sarisa-f, @isandwish";
 
   return (
     <div className="relative w-screen h-screen overflow-hidden flex items-center justify-center bg-[#fdf6e3]">
       
-      {/* 🟢 Layer 0: Background Image (ใช้ img tag ชัวร์สุด) */}
+      {/* 🟢 Layer 0: Background Image */}
       <img 
         src={welcomeBgImage} 
         alt="Welcome Background" 
@@ -24,28 +25,16 @@ function WelcomePage() {
       />
 
       {/* 🟢 Layer 1: Button */}
-      {/* ใช้ div wrapper เพื่อจัด layout หรือจะวาง absolute ตรงๆ ตามเดิมก็ได้ */}
       <button 
         onClick={handleStart}
         className="
           absolute
-          /* ตำแหน่งตามที่คุณระบุ */
           left-[28%] top-[36.5%]
-          
-          /* จัด Layer ให้ลอยเหนือพื้นหลัง */
           z-10
-
-          /* Styling */
           font-dancing font-medium text-2xl text-vintage-red
           min-w-[200px] h-[80px] px-4
-          
-          /* Reset ปุ่มเดิม */
           bg-transparent border-none outline-none
-          
-          /* รูปปุ่ม */
           bg-no-repeat bg-center bg-[length:100%_100%]
-          
-          /* Interaction */
           transition-transform duration-200 hover:scale-105 active:scale-95
           cursor-pointer
         "
@@ -53,6 +42,22 @@ function WelcomePage() {
       >
         Enter the Booth
       </button>
+
+      {/* 🟢 Layer 2: Credits */}
+      <div
+        target="_blank"
+        rel="noopener noreferrer"
+        className="
+          absolute bottom-10 
+          right-[52px] text-right
+          z-20
+          font-dancing text-vintage-red
+          text-lg md:text-l
+          transition-colors duration-300
+        "
+      >
+        Developed with by @sarisa-f, @isandwish
+      </div>
 
     </div>
   );
